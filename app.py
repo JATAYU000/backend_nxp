@@ -1,23 +1,19 @@
 from flask import Flask, request, jsonify, render_template_string
 from datetime import datetime
-import json
 
 app = Flask(__name__)
 uploads = []
-ANGLES_FILE = "angles.txt"
+# Global variable for angles
+angles_data = {}
 
-# Function to save angles to file
-def save_angles_to_file(angles):
-    with open(ANGLES_FILE, 'w') as f:
-        json.dump(angles, f)
+# Function to save angles to global variable
+def save_angles_to_memory(angles):
+    global angles_data
+    angles_data = angles
 
-# Function to read angles from file
-def read_angles_from_file():
-    try:
-        with open(ANGLES_FILE, 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return {}
+# Function to read angles from global variable
+def read_angles_from_memory():
+    return angles_data
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -94,58 +90,51 @@ HTML_TEMPLATE = """
 
 @app.route('/save_angles', methods=['POST'])
 def save_angles():
-    """Save angles to file"""
+    """Save angles to memory"""
     angles = request.get_json()
-    save_angles_to_file(angles)
+    save_angles_to_memory(angles)
     return jsonify({"message": "Angles saved successfully"}), 200
 
 @app.route('/get_angles', methods=['GET'])
 def get_angles():
-    """Get angles from file"""
-    angles = read_angles_from_file()
+    """Get angles from memory"""
+    angles = read_angles_from_memory()
     return jsonify(angles)
-
-@app.route('/', methods=['GET'])
-def home():
-    """Home route with angle input form"""
-    return render_template_string(HTML_TEMPLATE)
 
 @app.route('/qr1', methods=['GET'])
 def qr1():
     """Return QR1 string"""
-    angles = read_angles_from_file()
-    angle = angles.get('angle1', 0)
+    angle = angles_data.get('angle1', 0)
     return f"1_{angle}_MotorBrew"
 
 @app.route('/qr2', methods=['GET'])
 def qr2():
     """Return QR2 string"""
-    angles = read_angles_from_file()
-    angle = angles.get('angle2', 0)
+    angle = angles_data.get('angle2', 0)
     return f"2_{angle}_MotorBrew"
 
 @app.route('/qr3', methods=['GET'])
 def qr3():
     """Return QR3 string"""
-    angles = read_angles_from_file()
-    angle = angles.get('angle3', 0)
+    angle = angles_data.get('angle3', 0)
     return f"3_{angle}_MotorBrew"
 
 @app.route('/qr4', methods=['GET'])
 def qr4():
     """Return QR4 string"""
-    angles = read_angles_from_file()
-    angle = angles.get('angle4', 0)
+    angle = angles_data.get('angle4', 0)
     return f"4_{angle}_MotorBrew"
 
 @app.route('/qr5', methods=['GET'])
 def qr5():
     """Return QR5 string"""
-    angles = read_angles_from_file()
-    angle = angles.get('angle5', 0)
+    angle = angles_data.get('angle5', 0)
     return f"5_{angle}_MotorBrew"
 
-# ...existing code for upload, uploads, and reset endpoints...
+@app.route('/', methods=['GET'])
+def home():
+    """Home route with angle input form"""
+    return render_template_string(HTML_TEMPLATE)
 
 @app.route('/upload/', methods=['POST'])
 def upload_file():
